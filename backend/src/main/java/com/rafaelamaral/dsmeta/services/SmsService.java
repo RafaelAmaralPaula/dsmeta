@@ -1,21 +1,19 @@
 package com.rafaelamaral.dsmeta.services;
 
-import com.rafaelamaral.dsmeta.entities.Sale;
 import com.rafaelamaral.dsmeta.repositories.SaleRepository;
 import com.twilio.Twilio;
-import com.twilio.type.PhoneNumber;
 import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class SmsService {
-    private static Logger logger = LoggerFactory.getLogger(SmsService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
+
+    private final SaleRepository saleRepository;
 
     @Value("${twilio.sid}")
     private String twilioSid;
@@ -29,15 +27,16 @@ public class SmsService {
     @Value("${twilio.phone.to}")
     private String twilioPhoneTo;
 
-    @Autowired
-    private SaleRepository saleRepository;
+    public SmsService(SaleRepository saleRepository){
+        this.saleRepository = saleRepository;
+    }
 
-    public void senSms(Long id){
-        Sale sale = saleRepository.findById(id).get();
+    public void sendSms(Long id){
+        var sale = saleRepository.findById(id).get();
 
-        String date = sale.getDate().getMonthValue() + "/" + sale.getDate().getYear();
+        var date = sale.getDate().getMonthValue() + "/" + sale.getDate().getYear();
 
-        String msg = "O vendedor " + sale.getSellerName() + " foi destaque em " + date
+        var msg = "O vendedor " + sale.getSellerName() + " foi destaque em " + date
                 + " com um total de R$ " + String.format("%.2f" , sale.getAmount());
 
         Twilio.init(twilioSid , twilioKey);
@@ -49,8 +48,6 @@ public class SmsService {
 
         logger.info("SEND MESSAGE WITH " + message.getSid());
 
-
     }
-
 
 }
